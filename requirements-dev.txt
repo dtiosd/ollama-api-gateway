@@ -1,0 +1,7 @@
+# 开发/CI 依赖：pip install -r requirements-dev.txt
+-r requirements.txt
+pytest>=8.0
+ruff>=0.6
+# examples/ 目录里的客户端调用示例
+openai>=1.40
+anthropic>=0.34

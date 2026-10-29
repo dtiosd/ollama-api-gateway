@@ -1,0 +1,31 @@
+# EditorConfig: https://editorconfig.org
+#
+# This project is developed on Windows and deployed on Linux, and some config
+# files are read with the OS locale encoding. Pinning charset/EOL here keeps
+# every editor producing files that both platforms can read.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Two-space indentation for markup, styles and CI/config YAML.
+[*.{yml,yaml,html,css,js,json}]
+indent_size = 2
+
+[*.md]
+# Trailing double spaces are significant Markdown (hard line break).
+trim_trailing_whitespace = false
+
+# Alembic reads alembic.ini with the OS locale encoding, which is GBK on
+# Chinese Windows: keep this file pure ASCII or every alembic command raises
+# UnicodeDecodeError.
+[alembic.ini]
+indent_size = 4
+
+[*.py]
+max_line_length = 100

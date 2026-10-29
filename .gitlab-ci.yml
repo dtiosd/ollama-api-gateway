@@ -1,0 +1,57 @@
+stages:
+  - lint
+  - test
+
+default:
+  image: python:3.11-slim
+  cache:
+    key:
+      files:
+        - requirements.txt
+        - requirements-dev.txt
+    paths:
+      - .cache/pip
+  before_script:
+    - python -m pip install --disable-pip-version-check --no-cache-dir
+      --cache-dir .cache/pip -r requirements-dev.txt
+
+variables:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+lint:
+  stage: lint
+  script:
+    - ruff check .
+
+unit-tests:
+  stage: test
+  script:
+    # 单元测试不依赖 PostgreSQL / Ollama：外部依赖在测试中被隔离
+    - python -m pytest
+
+# 在全新数据库上重放迁移，确认 models.py 与迁移历史一致（结构漂移会让 job 失败）。
+migration-drift:
+  stage: test
+  services:
+    - name: postgres:15-alpine
+      alias: postgres
+  variables:
+    # alembic/env.py 会导入 app.config，所有必填配置都必须以环境变量给出
+    # （CI 环境没有 .env 文件）。
+    DATABASE_URL: "postgresql+asyncpg://ci:ci-pass@postgres:5432/ollama_api_ci"
+    POSTGRES_DB: "ollama_api_ci"
+    POSTGRES_USER: "ci"
+    POSTGRES_PASSWORD: "ci-pass"
+    OLLAMA_BASE_URL: "http://127.0.0.1:11434"
+    OLLAMA_DEFAULT_MODEL: "qwen2.5:7b"
+    DATABASE_POOL_SIZE: "5"
+    DATABASE_MAX_OVERFLOW: "5"
+    DATABASE_POOL_TIMEOUT: "10"
+    DATABASE_POOL_RECYCLE: "1800"
+    OLLAMA_GLOBAL_CONCURRENCY: "2"
+    OLLAMA_MODEL_CONCURRENCY: "1"
+    OLLAMA_QUEUE_TIMEOUT: "5"
+    OLLAMA_MODELS_CACHE_TTL: "5"
+  script:
+    - python -m alembic upgrade head
+    - python -m alembic check

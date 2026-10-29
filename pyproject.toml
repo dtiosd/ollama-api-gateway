@@ -1,0 +1,30 @@
+[project]
+name = "ollama-api-gateway"
+version = "0.1.0"
+description = "FastAPI + langchain-ollama 的 OpenAI / Anthropic 兼容网关，带 API Key 与用量管理"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["ollama", "openai-compatible", "anthropic-compatible", "fastapi", "gateway"]
+# 运行时依赖以 requirements.txt 为准，本文件仅承载项目元数据与工具配置。
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+# 只开正确性相关的规则，风格问题交给格式化
+select = ["F", "E9", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI 依赖注入惯例就是在默认参数里调用 Depends
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Header"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
