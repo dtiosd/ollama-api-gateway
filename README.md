@@ -6,6 +6,28 @@ An **OpenAI / Anthropic compatible gateway** built with FastAPI + langchain-olla
 
 Good fit for: a self-hosted team or personal model gateway that needs "one key per model, enforced quota, visible usage".
 
+## Admin UI
+
+<img src="docs/images/admin-ui-locked.png" alt="Admin UI behind the passphrase gate" width="900" />
+
+Open `/` in a browser and paste your `ADMIN_TOKEN` to unlock key management and usage statistics.
+The screenshot shows the locked state: until the passphrase is accepted, every `/backend/api-keys`
+call returns `403` or `503`, so the key list and the usage panels stay empty.
+
+<img src="docs/images/admin-ui-keys.png" alt="Unlocked admin UI: API key list and usage statistics" width="900" />
+
+Once the passphrase is accepted, the key list shows each key's bound model, remaining quota, status
+and creation time; the usage panel aggregates prompt / completion / total tokens and request counts
+by user or by model across day, week, month and year.
+
+## Call examples
+
+<img src="docs/images/call-examples.png" alt="Call examples panel with OpenAI and Anthropic snippets" width="900" />
+
+The admin page renders ready-to-copy snippets for both protocols in `curl`, Python and Node.js.
+Base URLs are derived from the page origin at runtime, so they always match the host you are
+actually serving on. The model names shown are placeholders — use whatever `ollama list` returns.
+
 ## Features
 
 - `POST /v1/chat/completions` — OpenAI-compatible chat (requires an API key), base URL is `/v1`
@@ -142,6 +164,7 @@ app/
   schemas/             # Pydantic schemas
 alembic/               # database migrations
 templates/ static/     # admin UI
+docs/images/           # screenshots used by the README
 examples/              # client-side example scripts
 tests/                 # unit tests
 deploy/                # reverse-proxy samples
@@ -166,10 +189,10 @@ alembic upgrade head
 
 ### What CI runs
 
-`.gitlab-ci.yml` has three jobs: `ruff`, `pytest`, and `migration-drift`, which replays every
-migration against a fresh PostgreSQL service and then runs `alembic check`. A failing drift check
-means `app/db/models.py` and the migration history disagree, so run it locally before committing
-model changes.
+`.github/workflows/ci.yml` has three jobs: `ruff`, `pytest`, and `migration-drift`, which replays
+every migration against a fresh PostgreSQL service container and then runs `alembic check`. A
+failing drift check means `app/db/models.py` and the migration history disagree, so run it locally
+before committing model changes.
 
 Column comments are deliberately excluded from that comparison: the wording in the historical
 migrations drifted from `models.py`, and comments are documentation rather than schema. Tables,

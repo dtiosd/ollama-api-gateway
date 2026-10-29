@@ -22,7 +22,7 @@ ruff check .
 python -m pytest
 ```
 
-单元测试不依赖 PostgreSQL 与 Ollama（见 `tests/conftest.py` 提供的测试环境变量）。需要真实外部服务的验证请在本地手动跑并在 MR 描述里写明结论。
+单元测试不依赖 PostgreSQL 与 Ollama（见 `tests/conftest.py` 提供的测试环境变量）。需要真实外部服务的验证请在本地手动跑并在 PR 描述里写明结论。
 
 ## 改动约定
 
@@ -33,11 +33,11 @@ python -m pytest
 - **兼容性**：`/v1/chat/completions`、`/v1/embeddings`、`/anthropic/v1/messages` 的响应结构遵循 OpenAI / Anthropic 公开规范，字段改动需要说明对客户端 SDK 的影响。
 - **错误码**：鉴权失败 `401`、配额用尽 `402`、密钥被禁用 `401`、管理口令错误 `403`、模型未配置 `400`、上游失败 `502`、排队超时 `429`。
 
-## 提交与合并请求
+## 提交与 Pull Request
 
 - 分支名：`feat/xxx`、`fix/xxx`、`refactor/xxx`、`docs/xxx`。
 - 提交信息使用现在时祈使句，例如 `fix: 流式中断时不再跳过用量记账`。
-- 一个 MR 只解决一件事；行为变更请附带 `curl` 或示例脚本的前后对比。
+- 一个 PR 只解决一件事；行为变更请附带 `curl` 或示例脚本的前后对比。
 - 请不要提交 `.env`、数据库导出、真实 API Key、内部主机地址或员工账号；`ADMIN_TOKEN`、密钥一律用占位值。
 
 ## Issue

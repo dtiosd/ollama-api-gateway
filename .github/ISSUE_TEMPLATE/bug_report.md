@@ -1,3 +1,11 @@
+---
+name: Bug 报告
+about: 报告接口、鉴权、配额、用量或部署问题
+title: "[bug] "
+labels: bug
+assignees: ""
+---
+
 ## 问题描述
 
 <!-- 发生了什么，影响哪些接口 -->

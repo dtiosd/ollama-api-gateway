@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 只需要读代码，不给写权限
+permissions:
+  contents: read
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      # 单元测试不依赖 PostgreSQL / Ollama，外部依赖在 tests/conftest.py 中被隔离
+      - run: python -m pytest
+
+  # 在全新数据库上重放迁移，确认 app/db/models.py 与迁移历史一致（结构漂移会失败）
+  migration-drift:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: ollama_api_ci
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ollama_api_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # alembic/env.py 会导入 app.config，所有必填配置都要以环境变量给出
+      # （CI 环境没有 .env 文件）
+      DATABASE_URL: postgresql+asyncpg://ci:ci-pass@localhost:5432/ollama_api_ci
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      OLLAMA_DEFAULT_MODEL: qwen2.5:7b
+      DATABASE_POOL_SIZE: "5"
+      DATABASE_MAX_OVERFLOW: "5"
+      DATABASE_POOL_TIMEOUT: "10"
+      DATABASE_POOL_RECYCLE: "1800"
+      OLLAMA_GLOBAL_CONCURRENCY: "2"
+      OLLAMA_MODEL_CONCURRENCY: "1"
+      OLLAMA_QUEUE_TIMEOUT: "5"
+      OLLAMA_MODELS_CACHE_TTL: "5"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: python -m alembic upgrade head
+      - run: python -m alembic check

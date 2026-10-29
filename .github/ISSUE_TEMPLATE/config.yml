@@ -1,0 +1,9 @@
+# 保留空白 Issue 入口（与原 GitLab 配置一致），功能需求也可以直接提。
+blank_issues_enabled: true
+
+contact_links:
+  - name: 安全漏洞请私下报告
+    url: https://github.com/dtiosd/ollama-api-gateway/security/advisories/new
+    about: >-
+      请用 GitHub 的私密安全报告（Report a vulnerability），
+      不要在公开 Issue / PR 里贴可复现的漏洞细节、API Key、ADMIN_TOKEN 或日志。

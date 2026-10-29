@@ -28,6 +28,9 @@
 
 ## 报告漏洞
 
-请通过仓库的 **私有 Issue（Confidential Issue）** 或项目 README 中的联系渠道私下报告，不要在公开 Issue、MR 评论中贴出可复现的漏洞细节、密钥或日志。
+请通过仓库页面上的 **Security → Report a vulnerability**（GitHub 的私密安全报告）上报，
+不要在公开 Issue 或 PR 评论里贴出可复现的漏洞细节、密钥或日志。
+若该入口尚未开启（需仓库管理员在 Settings → Security 里启用 Private vulnerability reporting），
+请改走项目 README 中的联系渠道私下报告。
 
 我们会在 2 周内回复并评估影响范围；确认修复后同步发布版本说明。

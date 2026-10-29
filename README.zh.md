@@ -6,6 +6,28 @@
 
 适用场景：团队或个人自建的私有模型网关，需要「一把 Key 对应一个模型 + 额度可控 + 用量可查」。
 
+## 管理界面
+
+<img src="docs/images/admin-ui-locked.png" alt="口令未解锁状态下的管理界面" width="900" />
+
+浏览器打开 `/`，把 `ADMIN_TOKEN` 粘进管理口令框才能解锁密钥管理与用量统计。
+上图是未解锁状态：口令未被接受前，所有 `/backend/api-keys` 请求都会返回 `403` 或 `503`，
+因此密钥列表与用量面板保持为空。
+
+<img src="docs/images/admin-ui-keys.png" alt="解锁后的管理界面：密钥列表与用量统计" width="900" />
+
+口令验证通过后，密钥列表会展示每把 Key 绑定的模型、剩余额度、状态与创建时间；
+用量面板则按用户名或按模型聚合 Prompt / Completion / Total token 与请求次数，
+可在日、周、月、年四个粒度间切换。
+
+## 调用示例
+
+<img src="docs/images/call-examples.png" alt="调用示例面板，包含 OpenAI 与 Anthropic 两种协议" width="900" />
+
+管理页会直接渲染两种协议的可复制代码，覆盖 `curl`、Python 与 Node.js。
+base URL 在运行时由当前页面域名拼接，所以永远等于你实际部署的地址；
+图里的模型名是占位示例，请以 `ollama list` 的真实输出为准。
+
 ## 功能
 
 - `POST /v1/chat/completions`：OpenAI 兼容聊天（需 API Key），base URL 为 `/v1`
@@ -140,6 +162,7 @@ app/
   schemas/             # Pydantic schema
 alembic/               # 数据库迁移
 templates/ static/     # 管理页
+docs/images/           # README 使用的界面截图
 examples/              # 客户端调用示例
 tests/                 # 单元测试
 deploy/                # 反向代理样例配置
@@ -162,9 +185,9 @@ alembic upgrade head
 
 ### CI 跑什么
 
-`.gitlab-ci.yml` 共三个 job：`ruff`、`pytest`，以及 `migration-drift` —— 后者在一个全新的
-PostgreSQL 服务上重放全部迁移，再跑 `alembic check`。漂移检查失败说明 `app/db/models.py`
-与迁移历史不一致，因此提交模型改动前先在本地跑一次。
+`.github/workflows/ci.yml` 共三个 job：`ruff`、`pytest`，以及 `migration-drift` —— 后者在一个
+全新的 PostgreSQL 服务容器上重放全部迁移，再跑 `alembic check`。漂移检查失败说明
+`app/db/models.py` 与迁移历史不一致，因此提交模型改动前先在本地跑一次。
 
 列注释被有意排除在比对之外：历史迁移里的注释文字已和 `models.py` 漂移，而注释属于文档、
 不是结构。表、列、类型、可空性、索引、约束仍然全量比对（见 `alembic/env.py` 的
